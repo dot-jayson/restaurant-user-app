@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import React, { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { Button, Input } from "@rneui/themed";
@@ -19,6 +19,7 @@ const Auth = () => {
     console.log("Sign In response", data, error);
 
     if (error) {
+      setLoading(false);
       console.error("Sign In Error: ", error.message);
       Alert.alert("Sign In Error", error.message);
     } else {
@@ -37,6 +38,7 @@ const Auth = () => {
     console.log("Sign Up response data:", data);
     console.log("Sign Up response error:", error);
     if (error) {
+      setLoading(false);
       console.error("Sign Up Error:", error.message);
       Alert.alert("Sign Up Error", error.message);
     } else if (!data.session) {
