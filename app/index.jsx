@@ -1,12 +1,14 @@
 import { StatusBar } from "expo-status-bar";
 import { Text, View } from "react-native";
-import Auth from "./components/Auth";
 import { supabase } from "../lib/supabase";
 import "react-native-url-polyfill/auto";
 import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
+import Auth from "./components/Auth";
 
 export default function App() {
   const [session, setSession] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -17,12 +19,19 @@ export default function App() {
     });
   }, []);
 
+  useEffect(() => {
+    if (session) {
+      if (session.user) {
+        router.replace("/home");
+      }
+    }
+  }, [session, router]);
+
   return (
     <View className="flex-1 bg-[#fff] justify-center gap-3">
       <Text className="text-2xl mx-auto">Restaurant App</Text>
       <StatusBar style="auto" />
-      <Auth />
-      {session && session.user && <Text>{session.user.id}</Text>}
+      {!session && <Auth />}
     </View>
   );
 }
