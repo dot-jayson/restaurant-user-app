@@ -1,16 +1,28 @@
-import { Link } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Text, View } from "react-native";
-import SignIn from "./(auth)/sign-in";
+import Auth from "./components/Auth";
+import { supabase } from "../lib/supabase";
+import "react-native-url-polyfill/auto";
+import { useEffect, useState } from "react";
 
 export default function App() {
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
+
   return (
-    <View className="flex-1 bg-[#fff] items-center justify-center gap-3">
-      <Text className="text-2xl">Restaurant App</Text>
+    <View className="flex-1 bg-[#fff] justify-center gap-3">
+      <Text className="text-2xl mx-auto">Restaurant App</Text>
       <StatusBar style="auto" />
-      <SignIn />
-      <Link href="/sign-up">Need to register? Sign up here</Link>
-      <Link href="/home">Home</Link>
+      <Auth />
+      {session && session.user && <Text>{session.user.id}</Text>}
     </View>
   );
 }
