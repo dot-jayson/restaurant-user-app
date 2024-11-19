@@ -1,4 +1,4 @@
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Alert } from "react-native";
 import React, { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { Button, Input } from "@rneui/themed";
@@ -10,41 +10,44 @@ const Auth = () => {
 
   async function signInWithEmail() {
     setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
-
-    console.log("Sign In response", data, error);
-
-    if (error) {
+      if (error) {
+        console.error("Sign In Error: ", error.message);
+        Alert.alert("Sign In Error", error.message);
+      } else {
+        Alert.alert("Success", "You are now signed in!");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
       setLoading(false);
-      console.error("Sign In Error: ", error.message);
-      Alert.alert("Sign In Error", error.message);
-    } else {
-      Alert.alert("Success", "You are now signed in!");
     }
-
-    setLoading(false);
   }
 
   async function signUpWithEmail() {
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-    });
-    console.log("Sign Up response data:", data);
-    console.log("Sign Up response error:", error);
-    if (error) {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        console.error("Sign Up Error:", error.message);
+        Alert.alert("Sign Up Error", error.message);
+      } else if (!data.session) {
+        Alert.alert("Successfully signed up!");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
       setLoading(false);
-      console.error("Sign Up Error:", error.message);
-      Alert.alert("Sign Up Error", error.message);
-    } else if (!data.session) {
-      Alert.alert("Successfully signed up!");
     }
-    setLoading(false);
   }
 
   return (
