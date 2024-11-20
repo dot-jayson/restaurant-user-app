@@ -10,7 +10,7 @@ import React, { useEffect, useState } from "react";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import MapView, { Marker } from "react-native-maps";
 import useLocation from "../../hooks/useLocation";
-import { useRouter } from "expo-router";
+import { useRouter, Link } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import { Button } from "@rneui/themed";
 
