@@ -15,6 +15,8 @@ import { supabase } from "../../lib/supabase";
 import { Button } from "@rneui/themed";
 
 const Home = () => {
+  const { latitude, longitude, errorMsg } = useLocation();
+  const [currentDate, setCurrentDate] = useState("");
   const [restaurants, setRestaurants] = useState([]);
   const router = useRouter();
   async function signOut() {
@@ -23,9 +25,12 @@ const Home = () => {
     router.replace("/");
   }
 
-  async function fetchRestaurants() {
-    const { data, error } = await supabase.rpc("get_restaurants_with_location");
-
+  async function fetchRestaurants(latitude, longitude) {
+    const { data, error } = await supabase.rpc(
+      `get_restaurants_within_distance`,
+      { user_lat: Number(latitude), user_long: Number(longitude) }
+    );
+    console.log("data received:", data);
     if (error) {
       console.error("Error fetching restaurants:", error);
     }
@@ -51,10 +56,15 @@ const Home = () => {
   }
 
   useEffect(() => {
-    fetchRestaurants();
-  }, []);
+    fetchRestaurants(latitude, longitude);
+    // var date = new Date().getDate(); //Current Date
+    // var month = new Date().getMonth() + 1; //Current Month
+    // var year = new Date().getFullYear(); //Current Year
+    // var hours = new Date().getHours(); //Current Hours
+    // var min = new Date().getMinutes(); //Current Minutes
 
-  const { latitude, longitude, errorMsg } = useLocation();
+    // setCurrentDate(date + "/" + month + "/" + year + " " + hours + ":" + min);
+  }, []);
 
   if (!latitude || !longitude) {
     return (
@@ -114,11 +124,16 @@ const Home = () => {
             <Text className="text-center text-xl font-bold mb-4">
               Restaurant List
             </Text>
-            <FlatList
-              data={restaurants}
-              renderItem={renderRestaurantItem}
-              keyExtractor={(item) => item.restaurant_id}
-            />
+
+            {restaurants.length === 0 ? (
+              <Text>No Restaurants Within Range</Text>
+            ) : (
+              <FlatList
+                data={restaurants}
+                renderItem={renderRestaurantItem}
+                keyExtractor={(item) => item.restaurant_id}
+              />
+            )}
           </View>
         </View>
       </SafeAreaView>
