@@ -17,7 +17,6 @@ const restaurantProfile = () => {
     if (error) {
       console.error("Error fetching restaurant:", error);
     } else {
-      console.log(data[0]);
       setIsLoading(false);
     }
   }
