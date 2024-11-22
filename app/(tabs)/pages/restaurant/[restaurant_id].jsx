@@ -1,9 +1,10 @@
 import { View, Text, Image, Button } from "react-native";
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/supabase";
-import { Link, useLocalSearchParams } from "expo-router";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 
 const restaurantProfile = () => {
+  const router = useRouter();
   const [restaurant, setRestaurant] = useState();
   const [isLoading, setIsLoading] = useState(true);
   const { restaurant_id } = useLocalSearchParams();
@@ -48,7 +49,12 @@ const restaurantProfile = () => {
         <Link href={restaurant["menu_link"]}>menu link</Link>
       )}
       <Text>{restaurant["restaurant_email"]}</Text>
-      <Button title="Book Table" />
+      <Button
+        title="Book Table"
+        onPress={() => {
+          router.push(`/pages/restaurant/${restaurant_id}/booking_page`);
+        }}
+      />
     </View>
   );
 };
