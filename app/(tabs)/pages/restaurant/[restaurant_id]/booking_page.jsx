@@ -1,4 +1,12 @@
-import { View, Text, Button, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  Button,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../../../lib/supabase";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -15,12 +23,9 @@ const bookingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [date, setDate] = useState(new Date());
-  // const [partySize, setPartySize] = useState();
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [selectedGroupSize, setSelectedGroupSize] = useState();
   const [userId, setUserId] = useState();
-
-  const [bookingData, setBookingData] = useState();
 
   async function fetchRestaurant() {
     let { data, error } = await supabase
@@ -62,11 +67,34 @@ const bookingPage = () => {
     if (error) {
       console.error("Error creating booking:", error);
     }
-    if (data) {
-      console.log(data);
-      setBookingData(data);
+    if (data && data.length > 0) {
+      console.log(data[0]);
+      createBookingAlert(data[0]);
+    }
+    if (!data || data.length === 0) {
+      failedBookingAlert();
     }
   }
+
+  const createBookingAlert = (data) => {
+    Alert.alert(
+      "Booking Confirmed",
+      ` Your booking for ${
+        restaurant.restaurant_name
+      } has been made. start time: ${data.booking_start_time.toLocaleString(
+        "en-GB",
+        { timeZone: "UTC" }
+      )} end time: ${data.booking_end_time.toLocaleString("en-GB", {
+        timeZone: "UTC",
+      })} group size: ${data.party_size} `,
+      [{ text: "OK", onPress: () => console.log("OK Pressed") }]
+    );
+  };
+
+  const failedBookingAlert = () =>
+    Alert.alert("Timeslot Unavailable", "", [
+      { text: "OK", onPress: () => console.log("OK Pressed") },
+    ]);
 
   async function getUserId() {
     const { data, error } = await supabase.auth.getSession();
@@ -91,20 +119,6 @@ const bookingPage = () => {
     return arr;
   };
 
-  const redirectBooking = () => {
-    if (bookingData) {
-      router.push({
-        pathname: `/pages/restaurant/${restaurant_id}/confirmation_page`,
-        booking_data: bookingData,
-      });
-    }
-  };
-
-  const combinedFunctions = () => {
-    createBooking();
-    redirectBooking();
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       await Promise.all([fetchRestaurant(), fetchHighestTable(), getUserId()]);
@@ -114,40 +128,71 @@ const bookingPage = () => {
   }, []);
 
   if (isLoading) {
-    return <Text>Loading ...</Text>;
+    return (
+      <Text className="text-center text-lg font-semibold mt-4">
+        Loading ...
+      </Text>
+    );
   }
 
   return (
-    <View>
-      <Text>{restaurant["restaurant_name"]}</Text>
-      <Text>choose group size</Text>
+    <ScrollView className="px-4 py-6">
+      <Text className="text-2xl font-bold text-gray-800 mb-4">
+        {restaurant["restaurant_name"]}
+      </Text>
+      <Text className="text-lg font-medium text-gray-700 mb-2">
+        Choose group size
+      </Text>
       <Picker
         selectedValue={selectedGroupSize}
         onValueChange={(itemValue, itemIndex) => {
           setSelectedGroupSize(itemValue);
         }}
+        style={{
+          paddingHorizontal: 12,
+          paddingVertical: 8,
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: "#ddd",
+          marginBottom: 16,
+        }}
       >
         {maxGroupSize(biggestTable)}
       </Picker>
 
-      <DateTimePicker
-        value={date}
-        mode="datetime"
-        is24Hour={true}
-        minuteInterval={5}
-        display="default"
-        onChange={getDate}
-      />
-
+      <Text className="text-lg font-medium text-gray-700 mb-4">
+        Select booking time
+      </Text>
+      <View className="mb-6">
+        <DateTimePicker
+          value={date}
+          mode="datetime"
+          is24Hour={true}
+          minuteInterval={5}
+          display="default"
+          onChange={getDate}
+          style={{ width: "100%", marginBottom: 16 }}
+        />
+      </View>
+      <Text className="text-lg font-medium text-gray-700 mb-4">
+        Additional info (optional)
+      </Text>
       <TextInput
-        style={{ height: 40 }}
         placeholder="Any additional info"
         onChangeText={(newText) => setAdditionalInfo(newText)}
-        defaultValue={additionalInfo}
+        value={additionalInfo}
+        className="h-16 border border-gray-300 rounded-lg px-4 py-2 text-lg mb-6"
       />
 
-      <Button title="confirm time" onPress={combinedFunctions}></Button>
-    </View>
+      <TouchableOpacity
+        onPress={createBooking}
+        className="mt-6 w-[200px] mx-auto bg-blue-500 p-4 rounded-full shadow-md"
+      >
+        <Text className="text-white text-center text-lg font-semibold">
+          Confirm Booking
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
