@@ -1,13 +1,11 @@
-import { View, Text, Button, TextInput } from "react-native";
+import { View, Text, Button, TextInput, Alert } from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../../../lib/supabase";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 
 const bookingPage = () => {
-  const router = useRouter();
-
   const { restaurant_id } = useLocalSearchParams();
 
   const [biggestTable, setBiggestTable] = useState();
@@ -63,8 +61,8 @@ const bookingPage = () => {
       console.error("Error creating booking:", error);
     }
     if (data) {
-      console.log(data);
-      setBookingData(data);
+      console.log(data[0]);
+      setBookingData(data[0]);
     }
   }
 
@@ -91,18 +89,25 @@ const bookingPage = () => {
     return arr;
   };
 
-  const redirectBooking = () => {
-    if (bookingData) {
-      router.push({
-        pathname: `/pages/restaurant/${restaurant_id}/confirmation_page`,
-        booking_data: bookingData,
-      });
-    }
-  };
+  const createBookingAlert = () =>
+    Alert.alert(
+      "Booking Confirmed",
+      `
+      Your booking for ${restaurant.restaurant_name} has been made.
+      start time: ${bookingData.booking_start_time.toLocaleString("en-GB", {
+        timeZone: "UTC",
+      })}
+      end time: ${bookingData.booking_end_time.toLocaleString("en-GB", {
+        timeZone: "UTC",
+      })}
+      group size: ${bookingData.party_size}
+      `,
+      [{ text: "OK", onPress: () => console.log("OK Pressed") }]
+    );
 
   const combinedFunctions = () => {
-    createBooking();
-    redirectBooking();
+    Promise.all([createBooking()]);
+    createBookingAlert();
   };
 
   useEffect(() => {
