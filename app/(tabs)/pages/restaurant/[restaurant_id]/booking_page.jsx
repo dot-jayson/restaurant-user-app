@@ -1,4 +1,3 @@
-
 import {
   View,
   Text,
@@ -76,24 +75,8 @@ const bookingPage = () => {
     }
     if (!data || data.length === 0) {
       failedBookingAlert();
-
     }
   }
-
-  const createBookingAlert = (data) => {
-    Alert.alert(
-      "Booking Confirmed",
-      ` Your booking for ${
-        restaurant.restaurant_name
-      } has been made. start time: ${data.booking_start_time.toLocaleString(
-        "en-GB",
-        { timeZone: "UTC" }
-      )} end time: ${data.booking_end_time.toLocaleString("en-GB", {
-        timeZone: "UTC",
-      })} group size: ${data.party_size} `,
-      [{ text: "OK", onPress: () => console.log("OK Pressed") }]
-    );
-  };
 
   const failedBookingAlert = () =>
     Alert.alert("Timeslot Unavailable", "", [
