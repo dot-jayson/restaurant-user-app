@@ -1,4 +1,4 @@
-import { View, Text, Button, TextInput } from "react-native";
+import { View, Text, Button, TextInput, Alert } from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../../../lib/supabase";
 import { useLocalSearchParams, useRouter } from "expo-router";
