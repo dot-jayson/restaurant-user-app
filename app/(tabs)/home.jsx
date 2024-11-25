@@ -4,6 +4,8 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Image,
+  Platform,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -51,12 +53,15 @@ const Home = () => {
     if (error) {
       console.error("Error fetching cuisines:", error);
     } else {
-      setCuisines(
-        data.map((cuisine) => ({
+      // Include "All" option in cuisines list
+      const cuisinesWithAll = [
+        { label: "All", value: null }, // Null value for "All" option
+        ...data.map((cuisine) => ({
           label: cuisine.cuisine_name,
           value: cuisine.cuisine_id,
-        }))
-      );
+        })),
+      ];
+      setCuisines(cuisinesWithAll);
     }
   }
   // Fetch Restaurants within distance
@@ -107,7 +112,8 @@ const Home = () => {
   }
   // Filter Restaurants by Cuisine
   async function filterRestaurantsByCuisine(restaurants, cuisineId) {
-    if (!cuisineId) {
+    if (cuisineId === null) {
+      // If "All" is selected (cuisineId is null), show all restaurants
       setCuisineFilteredRestaurants(restaurants);
       return;
     }
@@ -198,7 +204,13 @@ const Home = () => {
             <Button title="Sign out" onPress={() => signOut()} />
           </View>
           <MapView initialRegion={tempInitialLocation} style={styles.map}>
-            <Marker coordinate={tempInitialLocation} title="You are here" />
+            <Marker coordinate={tempInitialLocation} title="You are here">
+              <Image
+                className="w-[50px] h-[50px]"
+                source={require("../../assets/location-marker.png")}
+              />
+            </Marker>
+
             {cuisineFilteredRestaurants.map((restaurant) => {
               return (
                 <Marker
@@ -223,26 +235,41 @@ const Home = () => {
             <Text className="text-center text-xl font-bold mb-4">
               Restaurant List
             </Text>
-            <DropDownPicker
-              open={openAvailabilityDropdown}
-              value={availabilityDropDownValue}
-              items={[
-                { label: "All", value: "all" },
-                { label: "Available in 15", value: "available15" },
-                { label: "Available in 1 hour", value: "available60" },
-              ]}
-              setOpen={setOpenAvailabilityDropdown}
-              setValue={setAvailabilityDropDownValue}
-              placeholder="Select Availability"
-            />
-            <DropDownPicker
-              open={openCuisineDropdown}
-              value={selectedCuisine}
-              items={cuisines}
-              setOpen={setOpenCuisineDropdown}
-              setValue={setSelectedCuisine}
-              placeholder="Select Cuisine"
-            />
+            <View
+              style={{
+                ...(Platform.OS !== "android" && { zIndex: 20 }),
+                position: "relative", // Ensure it's positioned correctly
+              }}
+            >
+              <DropDownPicker
+                open={openAvailabilityDropdown}
+                value={availabilityDropDownValue}
+                items={[
+                  { label: "All", value: "all" },
+                  { label: "Available in 15", value: "available15" },
+                  { label: "Available in 1 hour", value: "available60" },
+                ]}
+                setOpen={setOpenAvailabilityDropdown}
+                setValue={setAvailabilityDropDownValue}
+                placeholder="Select Availability"
+              />
+            </View>
+            <View
+              style={{
+                ...(Platform.OS !== "android" && { zIndex: 15 }),
+                position: "relative",
+              }}
+            >
+              <DropDownPicker
+                open={openCuisineDropdown}
+                value={selectedCuisine}
+                items={cuisines}
+                setOpen={setOpenCuisineDropdown}
+                setValue={setSelectedCuisine}
+                placeholder="Select Cuisine"
+              />
+            </View>
+
             {cuisineFilteredRestaurants.length === 0 ? (
               <Text>No Restaurants Available</Text>
             ) : (
