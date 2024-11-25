@@ -13,6 +13,7 @@ import { supabase } from "../../../../../lib/supabase";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
+import { format } from "date-fns";
 
 const bookingPage = () => {
   const router = useRouter();
@@ -108,15 +109,15 @@ const bookingPage = () => {
 
   const createBookingAlert = (data) => {
     Alert.alert(
-      "Booking Confirmed",
+      "Booking Confirmed!",
       ` Your booking for ${
         restaurant.restaurant_name
-      } has been made. start time: ${data.booking_start_time.toLocaleString(
-        "en-GB",
-        { timeZone: "UTC" }
-      )} end time: ${data.booking_end_time.toLocaleString("en-GB", {
-        timeZone: "UTC",
-      })} group size: ${data.party_size} `,
+      } has been confirmed for ${format(
+        data.booking_start_time,
+        "dd MMMM yyyy 'at' hh:mm a"
+      )} to ${format(data.booking_end_time, "hh:mm a")} for a party of ${
+        data.party_size
+      } `,
       [{ text: "OK", onPress: () => console.log("OK Pressed") }]
     );
   };

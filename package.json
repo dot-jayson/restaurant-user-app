@@ -14,6 +14,7 @@
     "@react-native-picker/picker": "2.9.0",
     "@rneui/themed": "^4.0.0-rc.8",
     "@supabase/supabase-js": "^2.46.1",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "expo": "~52.0.7",
     "expo-constants": "~17.0.3",
