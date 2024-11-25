@@ -1,3 +1,4 @@
+
 import {
   View,
   Text,
@@ -7,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
+
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../../../lib/supabase";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -67,12 +69,14 @@ const bookingPage = () => {
     if (error) {
       console.error("Error creating booking:", error);
     }
+
     if (data && data.length > 0) {
       console.log(data[0]);
       createBookingAlert(data[0]);
     }
     if (!data || data.length === 0) {
       failedBookingAlert();
+
     }
   }
 
@@ -119,6 +123,20 @@ const bookingPage = () => {
     return arr;
   };
 
+  const createBookingAlert = (data) => {
+    Alert.alert(
+      "Booking Confirmed",
+      ` Your booking for ${
+        restaurant.restaurant_name
+      } has been made. start time: ${data.booking_start_time.toLocaleString(
+        "en-GB",
+        { timeZone: "UTC" }
+      )} end time: ${data.booking_end_time.toLocaleString("en-GB", {
+        timeZone: "UTC",
+      })} group size: ${data.party_size} `,
+      [{ text: "OK", onPress: () => console.log("OK Pressed") }]
+    );
+  };
   useEffect(() => {
     const fetchData = async () => {
       await Promise.all([fetchRestaurant(), fetchHighestTable(), getUserId()]);
