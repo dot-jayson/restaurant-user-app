@@ -27,9 +27,11 @@ const Home = () => {
   const [selectedCuisine, setSelectedCuisine] = useState(null);
   const [openAvailabilityDropdown, setOpenAvailabilityDropdown] =
     useState(false);
+  const [openPartySizeDropdown, setOpenPartySizeDropdown] = useState(false);
   const [availabilityDropDownValue, setAvailabilityDropDownValue] =
     useState("all");
   const [availabilityTime, setAvailabilityTime] = useState(null);
+  const [partySize, setPartySize] = useState(null);
   const router = useRouter();
   async function signOut() {
     const { error } = await supabase.auth.signOut();
@@ -47,15 +49,14 @@ const Home = () => {
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   };
-  // Fetch Cuisines
+
   async function fetchCuisines() {
     const { data, error } = await supabase.from("cuisines").select("*");
     if (error) {
       console.error("Error fetching cuisines:", error);
     } else {
-      // Include "All" option in cuisines list
       const cuisinesWithAll = [
-        { label: "All", value: null }, // Null value for "All" option
+        { label: "All", value: null },
         ...data.map((cuisine) => ({
           label: cuisine.cuisine_name,
           value: cuisine.cuisine_id,
@@ -64,7 +65,7 @@ const Home = () => {
       setCuisines(cuisinesWithAll);
     }
   }
-  // Fetch Restaurants within distance
+
   async function fetchRestaurants(latitude, longitude) {
     const { data, error } = await supabase.rpc(
       `get_restaurants_within_distance`,
@@ -81,8 +82,8 @@ const Home = () => {
       console.log("No restaurants found");
     }
   }
-  // Check Availability of Restaurants
-  async function checkRestaurantAvailability(restaurants, time) {
+
+  async function checkRestaurantAvailability(restaurants, time, partySize) {
     let availableList = [];
     const timestamp = new Date().toISOString();
     console.log(`Availability check performed at: ${timestamp}`);
@@ -93,6 +94,7 @@ const Home = () => {
         {
           chosen_restaurant_id: restaurant.restaurant_id,
           time_to_check: time.toISOString(),
+          group_size: partySize,
         }
       );
       if (error) {
@@ -110,10 +112,9 @@ const Home = () => {
     );
     setAvailableRestaurants(availableList);
   }
-  // Filter Restaurants by Cuisine
+
   async function filterRestaurantsByCuisine(restaurants, cuisineId) {
     if (cuisineId === null) {
-      // If "All" is selected (cuisineId is null), show all restaurants
       setCuisineFilteredRestaurants(restaurants);
       return;
     }
@@ -134,7 +135,7 @@ const Home = () => {
       console.log("Cuisine filtered restaurants:", filtered);
     }
   }
-  // Render Restaurant Item
+
   function renderRestaurantItem({ item }) {
     return (
       <TouchableOpacity
@@ -149,7 +150,6 @@ const Home = () => {
     );
   }
 
-  // Change to userLocation.latitude and userLocation.Longitude when not testing
   useEffect(() => {
     fetchCuisines();
     fetchRestaurants(
@@ -160,10 +160,10 @@ const Home = () => {
   useEffect(() => {
     let targetTime = new Date();
     switch (availabilityDropDownValue) {
-      case "available15":
+      case "15 minutes":
         targetTime.setMinutes(targetTime.getMinutes() + 15);
         break;
-      case "available60":
+      case "1 hour":
         targetTime.setHours(targetTime.getHours() - 25);
         break;
       case "all":
@@ -178,17 +178,18 @@ const Home = () => {
         targetTime ? targetTime.toISOString() : "None (Show all)"
       }`
     );
+
     if (targetTime === null) {
-      // If "All" is selected, show all restaurants
       setAvailableRestaurants(restaurants);
     } else {
-      // Otherwise, filter by availability
-      checkRestaurantAvailability(restaurants, targetTime);
+      checkRestaurantAvailability(restaurants, targetTime, partySize);
     }
-  }, [availabilityDropDownValue, restaurants]);
+  }, [availabilityDropDownValue, restaurants, partySize]);
+
   useEffect(() => {
     filterRestaurantsByCuisine(availableRestaurants, selectedCuisine);
   }, [selectedCuisine, availableRestaurants]);
+
   if (!latitude || !longitude) {
     return (
       <SafeAreaView>
@@ -235,10 +236,20 @@ const Home = () => {
             <Text className="text-center text-xl font-bold mb-4">
               Restaurant List
             </Text>
+            {(availabilityDropDownValue != "all") & (partySize != null) ? (
+              <Text>
+                Showing restaurants available in {availabilityDropDownValue} for
+                party size of {partySize}
+              </Text>
+            ) : (
+              ""
+            )}
             <View
               style={{
-                ...(Platform.OS !== "android" && { zIndex: 20 }),
-                position: "relative", // Ensure it's positioned correctly
+                ...(Platform.OS !== "android" && {
+                  zIndex: openAvailabilityDropdown ? 30 : 20,
+                }),
+                position: "relative",
               }}
             >
               <DropDownPicker
@@ -246,17 +257,48 @@ const Home = () => {
                 value={availabilityDropDownValue}
                 items={[
                   { label: "All", value: "all" },
-                  { label: "Available in 15", value: "available15" },
-                  { label: "Available in 1 hour", value: "available60" },
+                  { label: "Available in 15", value: "15 minutes" },
+                  { label: "Available in 1 hour", value: "1 hour" },
                 ]}
                 setOpen={setOpenAvailabilityDropdown}
                 setValue={setAvailabilityDropDownValue}
                 placeholder="Select Availability"
               />
             </View>
+            {availabilityDropDownValue != "all" ? (
+              <View
+                style={{
+                  ...(Platform.OS !== "android" && {
+                    zIndex: openPartySizeDropdown ? 30 : 20,
+                  }),
+                  position: "relative",
+                }}
+              >
+                <DropDownPicker
+                  open={openPartySizeDropdown}
+                  value={partySize}
+                  items={Array.from({ length: 8 }, (_, index) => ({
+                    label: `${index + 1}`,
+                    value: index + 1,
+                  }))}
+                  setOpen={setOpenPartySizeDropdown}
+                  setValue={setPartySize}
+                  placeholder="Select Party Size"
+                />
+              </View>
+            ) : (
+              <Text>Please select availability time</Text>
+            )}
+            {(partySize === null) & (availabilityDropDownValue != "all") ? (
+              <Text>Please select a party size</Text>
+            ) : (
+              ""
+            )}
             <View
               style={{
-                ...(Platform.OS !== "android" && { zIndex: 15 }),
+                ...(Platform.OS !== "android" && {
+                  zIndex: openCuisineDropdown ? 30 : 15,
+                }),
                 position: "relative",
               }}
             >
@@ -269,7 +311,6 @@ const Home = () => {
                 placeholder="Select Cuisine"
               />
             </View>
-
             {cuisineFilteredRestaurants.length === 0 ? (
               <Text>No Restaurants Available</Text>
             ) : (
