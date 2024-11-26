@@ -15,6 +15,8 @@ import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import { Button } from "@rneui/themed";
 import DropDownPicker from "react-native-dropdown-picker";
+import { getDistance } from "geolib";
+
 const Home = () => {
   const { latitude, longitude, errorMsg } = useLocation();
   const [restaurants, setRestaurants] = useState([]);
@@ -106,6 +108,7 @@ const Home = () => {
         availableList.push(restaurant);
       }
     }
+
     console.log(
       `Available restaurants after check at ${timestamp}:`,
       availableList
@@ -131,12 +134,21 @@ const Home = () => {
       const filtered = restaurants.filter((restaurant) =>
         cuisineIds.has(restaurant.restaurant_id)
       );
+
       setCuisineFilteredRestaurants(filtered);
       console.log("Cuisine filtered restaurants:", filtered);
     }
   }
 
   function renderRestaurantItem({ item }) {
+    const distance = getDistance(
+      {
+        latitude: tempInitialLocation.latitude,
+        longitude: tempInitialLocation.longitude,
+      },
+      { latitude: item.latitude, longitude: item.longitude }
+    );
+    const distanceInKm = (distance / 1000).toFixed(2);
     return (
       <TouchableOpacity
         onPress={() => {
@@ -145,6 +157,7 @@ const Home = () => {
       >
         <View className="bg-white p-4 m-2 rounded-lg shadow-sm">
           <Text className="text-lg text-gray-800">{item.restaurant_name}</Text>
+          <Text className="text-sm text-gray-500">{distanceInKm} km away</Text>
         </View>
       </TouchableOpacity>
     );
