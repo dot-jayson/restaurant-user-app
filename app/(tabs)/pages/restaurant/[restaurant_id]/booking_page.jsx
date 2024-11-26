@@ -59,7 +59,7 @@ const bookingPage = () => {
 
   async function createBooking() {
     const { data, error } = await supabase.rpc("create_booking", {
-      booking_time: date,
+      booking_time: date.toISOString().slice(0, -5).replace("T", " ") + "+00",
       chosen_restaurant_id: restaurant_id,
       customer_id: userId,
       customer_info: additionalInfo,
