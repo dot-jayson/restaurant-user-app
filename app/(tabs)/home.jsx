@@ -159,12 +159,13 @@ const Home = () => {
   }, []);
   useEffect(() => {
     let targetTime = new Date();
+
     switch (availabilityDropDownValue) {
       case "15 minutes":
         targetTime.setMinutes(targetTime.getMinutes() + 15);
         break;
       case "1 hour":
-        targetTime.setHours(targetTime.getHours() - 25);
+        targetTime.setHours(targetTime.getHours() + 1);
         break;
       case "all":
         targetTime = null;
@@ -179,16 +180,18 @@ const Home = () => {
       }`
     );
 
-    if (targetTime === null) {
+    if (availabilityDropDownValue === "all") {
       setAvailableRestaurants(restaurants);
     } else {
-      checkRestaurantAvailability(restaurants, targetTime, partySize);
+      if (partySize !== null) {
+        checkRestaurantAvailability(restaurants, targetTime, partySize);
+      }
     }
   }, [availabilityDropDownValue, restaurants, partySize]);
 
   useEffect(() => {
     filterRestaurantsByCuisine(availableRestaurants, selectedCuisine);
-  }, [selectedCuisine, availableRestaurants]);
+  }, [selectedCuisine, availableRestaurants, partySize]);
 
   if (!latitude || !longitude) {
     return (
