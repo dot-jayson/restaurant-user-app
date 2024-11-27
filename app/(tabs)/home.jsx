@@ -5,9 +5,9 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
-  Platform,
+  Animated,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import MapView, { Marker } from "react-native-maps";
 import useLocation from "../../hooks/useLocation";
@@ -18,39 +18,59 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { getDistance } from "geolib";
 
 const Home = () => {
+  const [isPanelVisible, setIsPanelVisible] = useState(false);
+  const panelAnimation = useRef(new Animated.Value(0)).current;
   const { latitude, longitude, errorMsg } = useLocation();
   const [restaurants, setRestaurants] = useState([]);
   const [availableRestaurants, setAvailableRestaurants] = useState([]);
-  const [cuisineFilteredRestaurants, setCuisineFilteredRestaurants] = useState(
-    []
-  );
+  const [cuisineFilteredRestaurants, setCuisineFilteredRestaurants] = useState([]);
   const [openCuisineDropdown, setOpenCuisineDropdown] = useState(false);
   const [cuisines, setCuisines] = useState([]);
   const [selectedCuisine, setSelectedCuisine] = useState(null);
-  const [openAvailabilityDropdown, setOpenAvailabilityDropdown] =
-    useState(false);
+  const [openAvailabilityDropdown, setOpenAvailabilityDropdown] = useState(false);
   const [openPartySizeDropdown, setOpenPartySizeDropdown] = useState(false);
-  const [availabilityDropDownValue, setAvailabilityDropDownValue] =
-    useState("all");
+  const [availabilityDropDownValue, setAvailabilityDropDownValue] = useState("all");
   const [availabilityTime, setAvailabilityTime] = useState(null);
   const [partySize, setPartySize] = useState(null);
   const router = useRouter();
+
   async function signOut() {
     const { error } = await supabase.auth.signOut();
     router.replace("/");
   }
+
   const userLocation = {
     latitude: Number(latitude),
     longitude: Number(longitude),
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   };
+
   const tempInitialLocation = {
     latitude: 51.5,
     longitude: -0.24,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   };
+
+  const togglePanel = () => {
+    const toValue = isPanelVisible ? 0 : 1;
+    Animated.timing(panelAnimation, {
+      toValue,
+      duration: 300,
+      useNativeDriver: false,
+    }).start(() => setIsPanelVisible(!isPanelVisible));
+  };
+
+  const panelWidth = panelAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0%", "60%"], 
+  });
+
+  const panelOpacity = panelAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
 
   async function fetchCuisines() {
     const { data, error } = await supabase.from("cuisines").select("*");
@@ -155,9 +175,9 @@ const Home = () => {
           router.push(`/pages/restaurant/${item.restaurant_id}`);
         }}
       >
-        <View className="bg-white p-4 m-2 rounded-lg shadow-sm">
-          <Text className="text-lg text-gray-800">{item.restaurant_name}</Text>
-          <Text className="text-sm text-gray-500">{distanceInKm} km away</Text>
+        <View style={styles.restaurantItem}>
+          <Text style={styles.restaurantName}>{item.restaurant_name}</Text>
+          <Text style={styles.restaurantDistance}>{distanceInKm} km away</Text>
         </View>
       </TouchableOpacity>
     );
@@ -170,6 +190,7 @@ const Home = () => {
       tempInitialLocation.longitude
     );
   }, []);
+
   useEffect(() => {
     let targetTime = new Date();
 
@@ -213,61 +234,73 @@ const Home = () => {
       </SafeAreaView>
     );
   }
+
   return (
     <SafeAreaProvider>
-      <SafeAreaView className="flex-1">
-        <View className="relative flex-1">
-          <View style={styles.verticallySpaced}>
-            <Button title="Sign out" onPress={() => signOut()} />
-          </View>
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={styles.container}>
+          {/* Map */}
           <MapView initialRegion={tempInitialLocation} style={styles.map}>
             <Marker coordinate={tempInitialLocation} title="You are here">
               <Image
-                className="w-[50px] h-[50px]"
+                style={styles.locationMarker}
                 source={require("../../assets/location-marker.png")}
               />
             </Marker>
 
-            {cuisineFilteredRestaurants.map((restaurant) => {
-              return (
-                <Marker
-                  key={restaurant.restaurant_id}
-                  coordinate={{
-                    latitude: restaurant.latitude,
-                    longitude: restaurant.longitude,
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01,
-                  }}
-                  title={restaurant.restaurant_name}
-                  onPress={() => {
-                    router.push(
-                      `/pages/restaurant/${restaurant.restaurant_id}`
-                    );
-                  }}
-                />
-              );
-            })}
+            {cuisineFilteredRestaurants.map((restaurant) => (
+              <Marker
+                key={restaurant.restaurant_id}
+                coordinate={{
+                  latitude: restaurant.latitude,
+                  longitude: restaurant.longitude,
+                }}
+                title={restaurant.restaurant_name}
+                onPress={() => {
+                  router.push(`/pages/restaurant/${restaurant.restaurant_id}`);
+                }}
+              />
+            ))}
           </MapView>
-          <View className="flex-1 p-4">
-            <Text className="text-center text-xl font-bold mb-4">
-              Restaurant List
+
+          {/* Open Filters Button */}
+          <TouchableOpacity
+            style={styles.openFiltersButton}
+            onPress={togglePanel}
+          >
+            <Text style={styles.panelButtonText}>
+              {isPanelVisible ? "Hide Filters" : "Show Filters"}
             </Text>
-            {(availabilityDropDownValue != "all") & (partySize != null) ? (
-              <Text>
-                Showing restaurants available in {availabilityDropDownValue} for
-                party size of {partySize}
-              </Text>
-            ) : (
-              ""
-            )}
-            <View
-              style={{
-                ...(Platform.OS !== "android" && {
-                  zIndex: openAvailabilityDropdown ? 30 : 20,
-                }),
-                position: "relative",
-              }}
-            >
+          </TouchableOpacity>
+
+          {/* Sign Out Button */}
+          <TouchableOpacity
+            style={styles.signOutButton}
+            onPress={signOut}
+          >
+            <Text style={styles.signOutButtonText}>Sign Out</Text>
+          </TouchableOpacity>
+
+          {/* Sliding Panel */}
+          <Animated.View
+            style={[
+              styles.slidingPanel,
+              { width: panelWidth, opacity: panelOpacity },
+            ]}
+          >
+            <View style={styles.panelContent}>
+              <TouchableOpacity
+                style={styles.panelButton}
+                onPress={togglePanel}
+              >
+                <Text style={styles.panelButtonText}>
+                  {isPanelVisible ? "Hide Filters" : "Show Filters"}
+                </Text>
+              </TouchableOpacity>
+
+              <Text style={styles.panelTitle}>Filter Options</Text>
+
+              {/* Availability Dropdown */}
               <DropDownPicker
                 open={openAvailabilityDropdown}
                 value={availabilityDropDownValue}
@@ -279,17 +312,13 @@ const Home = () => {
                 setOpen={setOpenAvailabilityDropdown}
                 setValue={setAvailabilityDropDownValue}
                 placeholder="Select Availability"
+                style={styles.dropdown}
+                dropDownStyle={styles.dropdownList}
+                zIndex={3}
               />
-            </View>
-            {availabilityDropDownValue != "all" ? (
-              <View
-                style={{
-                  ...(Platform.OS !== "android" && {
-                    zIndex: openPartySizeDropdown ? 30 : 20,
-                  }),
-                  position: "relative",
-                }}
-              >
+
+              {/* Party Size Dropdown */}
+              {availabilityDropDownValue !== "all" && (
                 <DropDownPicker
                   open={openPartySizeDropdown}
                   value={partySize}
@@ -300,24 +329,13 @@ const Home = () => {
                   setOpen={setOpenPartySizeDropdown}
                   setValue={setPartySize}
                   placeholder="Select Party Size"
+                  style={styles.dropdown}
+                  dropDownStyle={styles.dropdownList}
+                  zIndex={2}
                 />
-              </View>
-            ) : (
-              <Text>Please select availability time</Text>
-            )}
-            {(partySize === null) & (availabilityDropDownValue != "all") ? (
-              <Text>Please select a party size</Text>
-            ) : (
-              ""
-            )}
-            <View
-              style={{
-                ...(Platform.OS !== "android" && {
-                  zIndex: openCuisineDropdown ? 30 : 15,
-                }),
-                position: "relative",
-              }}
-            >
+              )}
+
+              {/* Cuisine Dropdown */}
               <DropDownPicker
                 open={openCuisineDropdown}
                 value={selectedCuisine}
@@ -325,42 +343,78 @@ const Home = () => {
                 setOpen={setOpenCuisineDropdown}
                 setValue={setSelectedCuisine}
                 placeholder="Select Cuisine"
+                style={styles.dropdown}
+                dropDownStyle={styles.dropdownList}
+                zIndex={1}
               />
             </View>
-            {cuisineFilteredRestaurants.length === 0 ? (
-              <Text>No Restaurants Available</Text>
-            ) : (
-              <FlatList
-                data={cuisineFilteredRestaurants}
-                renderItem={renderRestaurantItem}
-                keyExtractor={(item) => item.restaurant_id}
-              />
-            )}
-          </View>
+          </Animated.View>
+
+          {/* Restaurant List Heading and List */}
+          <Text style={styles.restaurantListHeading}>Restaurant List</Text>
+          <FlatList
+            data={cuisineFilteredRestaurants}
+            renderItem={renderRestaurantItem}
+            keyExtractor={(item) => item.restaurant_id}
+            contentContainerStyle={styles.restaurantListContainer}
+          />
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  innerContainer: {
-    flex: 1,
-  },
-  buttonContainer: {
-    margin: 10,
+    paddingTop: 20,
+    backgroundColor: "#fff",
   },
   map: {
-    height: "50%",
+    height: "55%", 
     width: "100%",
   },
-  restaurantListContainer: {
-    flex: 1,
-    padding: 16,
+  signOutButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 10,
+    backgroundColor: "#ff5c5c",
+    padding: 10,
+    borderRadius: 5,
   },
-  listTitle: {
+  signOutButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  locationMarker: {
+    width: 30,
+    height: 30,
+  },
+  openFiltersButton: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    zIndex: 10,
+    backgroundColor: "#007bff",
+    padding: 10,
+    borderRadius: 5,
+  },
+  slidingPanel: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    bottom: 0,
+    backgroundColor: "#f1f1f1",
+    borderRightWidth: 1,
+    borderRightColor: "#ddd",
+    padding: 20,
+    zIndex: 10,
+  },
+  panelContent: {
+    flex: 1,
+  },
+  panelTitle: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
@@ -368,10 +422,42 @@ const styles = StyleSheet.create({
   restaurantItem: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    borderBottomColor: "#ddd",
+    alignItems: 'center', 
   },
   restaurantName: {
     fontSize: 16,
   },
+  restaurantDistance: {
+    color: "#888",
+    fontSize: 12,
+  },
+  dropdown: {
+    marginBottom: 10,
+  },
+  dropdownList: {
+    zIndex: 5,
+  },
+  panelButton: {
+    backgroundColor: "#007bff",
+    padding: 10,
+    borderRadius: 5,
+  },
+  panelButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  restaurantListHeading: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 20,
+    marginBottom: 10,
+    alignSelf: "center", 
+  },
+  restaurantListContainer: {
+    flexGrow: 0,  
+    paddingHorizontal: 10,
+  },
 });
+
 export default Home;
