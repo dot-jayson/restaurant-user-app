@@ -13,7 +13,6 @@ import MapView, { Marker } from "react-native-maps";
 import useLocation from "../../hooks/useLocation";
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
-import { Button } from "@rneui/themed";
 import DropDownPicker from "react-native-dropdown-picker";
 import { getDistance } from "geolib";
 
@@ -23,13 +22,17 @@ const Home = () => {
   const { latitude, longitude, errorMsg } = useLocation();
   const [restaurants, setRestaurants] = useState([]);
   const [availableRestaurants, setAvailableRestaurants] = useState([]);
-  const [cuisineFilteredRestaurants, setCuisineFilteredRestaurants] = useState([]);
+  const [cuisineFilteredRestaurants, setCuisineFilteredRestaurants] = useState(
+    []
+  );
   const [openCuisineDropdown, setOpenCuisineDropdown] = useState(false);
   const [cuisines, setCuisines] = useState([]);
   const [selectedCuisine, setSelectedCuisine] = useState(null);
-  const [openAvailabilityDropdown, setOpenAvailabilityDropdown] = useState(false);
+  const [openAvailabilityDropdown, setOpenAvailabilityDropdown] =
+    useState(false);
   const [openPartySizeDropdown, setOpenPartySizeDropdown] = useState(false);
-  const [availabilityDropDownValue, setAvailabilityDropDownValue] = useState("all");
+  const [availabilityDropDownValue, setAvailabilityDropDownValue] =
+    useState("all");
   const [availabilityTime, setAvailabilityTime] = useState(null);
   const [partySize, setPartySize] = useState(null);
   const router = useRouter();
@@ -64,7 +67,7 @@ const Home = () => {
 
   const panelWidth = panelAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: ["0%", "60%"], 
+    outputRange: ["0%", "60%"],
   });
 
   const panelOpacity = panelAnimation.interpolate({
@@ -98,8 +101,21 @@ const Home = () => {
       console.error("Error fetching restaurants:", error);
     }
     if (data && data.length > 0) {
-      setRestaurants(data);
-      checkRestaurantAvailability(data, availabilityTime);
+      const restaurantsWithDistance = data.map((restaurant) => {
+        const distance = getDistance(
+          { latitude, longitude },
+          { latitude: restaurant.latitude, longitude: restaurant.longitude }
+        );
+        const distanceInKm = distance / 1000;
+        return { ...restaurant, distanceInKm };
+      });
+
+      const sortedRestaurants = restaurantsWithDistance.sort(
+        (a, b) => a.distanceInKm - b.distanceInKm
+      );
+
+      setRestaurants(sortedRestaurants);
+      checkRestaurantAvailability(sortedRestaurants, availabilityTime);
     } else {
       console.log("No restaurants found");
     }
@@ -175,9 +191,9 @@ const Home = () => {
           router.push(`/pages/restaurant/${item.restaurant_id}`);
         }}
       >
-        <View style={styles.restaurantItem}>
-          <Text style={styles.restaurantName}>{item.restaurant_name}</Text>
-          <Text style={styles.restaurantDistance}>{distanceInKm} km away</Text>
+        <View className="p-2.5 border-b border-gray-300 items-center">
+          <Text className="text-lg">{item.restaurant_name}</Text>
+          <Text className="text-sm text-gray-500">{distanceInKm} km away</Text>
         </View>
       </TouchableOpacity>
     );
@@ -237,8 +253,8 @@ const Home = () => {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.container}>
+      <SafeAreaView className="flex-1">
+        <View className="flex-1 bg-white">
           {/* Map */}
           <MapView initialRegion={tempInitialLocation} style={styles.map}>
             <Marker coordinate={tempInitialLocation} title="You are here">
@@ -265,20 +281,20 @@ const Home = () => {
 
           {/* Open Filters Button */}
           <TouchableOpacity
-            style={styles.openFiltersButton}
+            className="absolute top-2.5 left-2.5 z-10 bg-blue-500 p-2.5 rounded-md"
             onPress={togglePanel}
           >
-            <Text style={styles.panelButtonText}>
+            <Text className="text-white font-bold">
               {isPanelVisible ? "Hide Filters" : "Show Filters"}
             </Text>
           </TouchableOpacity>
 
           {/* Sign Out Button */}
           <TouchableOpacity
-            style={styles.signOutButton}
+            className="absolute top-2.5 right-2.5 z-10 bg-red-500 p-2.5 rounded-md"
             onPress={signOut}
           >
-            <Text style={styles.signOutButtonText}>Sign Out</Text>
+            <Text className="text-white font-bold">Sign Out</Text>
           </TouchableOpacity>
 
           {/* Sliding Panel */}
@@ -288,17 +304,17 @@ const Home = () => {
               { width: panelWidth, opacity: panelOpacity },
             ]}
           >
-            <View style={styles.panelContent}>
+            <View className="flex-1">
               <TouchableOpacity
-                style={styles.panelButton}
+                className="bg-blue-500 p-2.5 rounded-md"
                 onPress={togglePanel}
               >
-                <Text style={styles.panelButtonText}>
+                <Text className="text-white font-bold">
                   {isPanelVisible ? "Hide Filters" : "Show Filters"}
                 </Text>
               </TouchableOpacity>
 
-              <Text style={styles.panelTitle}>Filter Options</Text>
+              <Text className="text-lg font-bold mb-2.5">Filter Options</Text>
 
               {/* Availability Dropdown */}
               <DropDownPicker
@@ -351,13 +367,19 @@ const Home = () => {
           </Animated.View>
 
           {/* Restaurant List Heading and List */}
-          <Text style={styles.restaurantListHeading}>Restaurant List</Text>
-          <FlatList
-            data={cuisineFilteredRestaurants}
-            renderItem={renderRestaurantItem}
-            keyExtractor={(item) => item.restaurant_id}
-            contentContainerStyle={styles.restaurantListContainer}
-          />
+          <Text className="text-2xl font-bold mt-5 mb-2.5 text-center">
+            Restaurant List
+          </Text>
+          {cuisineFilteredRestaurants.length === 0 ? (
+            <Text>No available restaurants near you</Text>
+          ) : (
+            <FlatList
+              data={cuisineFilteredRestaurants}
+              renderItem={renderRestaurantItem}
+              keyExtractor={(item) => item.restaurant_id}
+              contentContainerStyle={styles.restaurantListContainer}
+            />
+          )}
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -365,41 +387,16 @@ const Home = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 20,
-    backgroundColor: "#fff",
-  },
   map: {
-    height: "55%", 
+    height: "55%",
     width: "100%",
   },
-  signOutButton: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    zIndex: 10,
-    backgroundColor: "#ff5c5c",
-    padding: 10,
-    borderRadius: 5,
-  },
-  signOutButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
+
   locationMarker: {
     width: 30,
     height: 30,
   },
-  openFiltersButton: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    zIndex: 10,
-    backgroundColor: "#007bff",
-    padding: 10,
-    borderRadius: 5,
-  },
+
   slidingPanel: {
     position: "absolute",
     top: 0,
@@ -411,51 +408,16 @@ const styles = StyleSheet.create({
     padding: 20,
     zIndex: 10,
   },
-  panelContent: {
-    flex: 1,
-  },
-  panelTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  restaurantItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    alignItems: 'center', 
-  },
-  restaurantName: {
-    fontSize: 16,
-  },
-  restaurantDistance: {
-    color: "#888",
-    fontSize: 12,
-  },
+
   dropdown: {
     marginBottom: 10,
   },
   dropdownList: {
     zIndex: 5,
   },
-  panelButton: {
-    backgroundColor: "#007bff",
-    padding: 10,
-    borderRadius: 5,
-  },
-  panelButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  restaurantListHeading: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 20,
-    marginBottom: 10,
-    alignSelf: "center", 
-  },
+
   restaurantListContainer: {
-    flexGrow: 0,  
+    flexGrow: 0,
     paddingHorizontal: 10,
   },
 });
