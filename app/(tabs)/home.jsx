@@ -50,8 +50,8 @@ const Home = () => {
   };
 
   const tempInitialLocation = {
-    latitude: 51.5,
-    longitude: -0.24,
+    latitude: 53.479,
+    longitude: -2.248,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   };
@@ -391,8 +391,8 @@ const styles = StyleSheet.create({
   },
 
   locationMarker: {
-    width: 30,
-    height: 30,
+    width: 50,
+    height: 50,
   },
 
   slidingPanel: {
