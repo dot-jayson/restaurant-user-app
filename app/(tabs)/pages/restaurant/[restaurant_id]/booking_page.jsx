@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { format } from "date-fns";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const bookingPage = () => {
   const router = useRouter();
@@ -138,63 +139,73 @@ const bookingPage = () => {
   }
 
   return (
-    <ScrollView className="px-4 py-6">
-      <Text className="text-2xl font-bold text-gray-800 mb-4">
-        {restaurant["restaurant_name"]}
-      </Text>
-      <Text className="text-lg font-medium text-gray-700 mb-2">
-        Choose group size
-      </Text>
-      <Picker
-        selectedValue={selectedGroupSize}
-        onValueChange={(itemValue, itemIndex) => {
-          setSelectedGroupSize(itemValue);
-        }}
-        style={{
-          paddingHorizontal: 12,
-          paddingVertical: 8,
-          borderRadius: 8,
-          borderWidth: 1,
-          borderColor: "#ddd",
-          marginBottom: 16,
-        }}
-      >
-        {maxGroupSize(biggestTable)}
-      </Picker>
-
-      <Text className="text-lg font-medium text-gray-700 mb-4">
-        Select booking time
-      </Text>
-      <View className="mb-6">
-        <DateTimePicker
-          value={date}
-          mode="datetime"
-          is24Hour={true}
-          minuteInterval={5}
-          display="default"
-          onChange={getDate}
-          style={{ width: "100%", marginBottom: 16 }}
-        />
+    <SafeAreaView className="flex-1 p-4">
+      <View className="flex-row items-center">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="p-2 bg-blue-500 rounded-lg shadow-md"
+        >
+          <Text className="text-white text-lg font-semibold">{"< Back"}</Text>
+        </TouchableOpacity>
       </View>
-      <Text className="text-lg font-medium text-gray-700 mb-4">
-        Additional info (optional)
-      </Text>
-      <TextInput
-        placeholder="Any additional info"
-        onChangeText={(newText) => setAdditionalInfo(newText)}
-        value={additionalInfo}
-        className="h-16 border border-gray-300 rounded-lg px-4 py-2 text-lg mb-6"
-      />
-
-      <TouchableOpacity
-        onPress={createBooking}
-        className="mt-6 w-[200px] mx-auto bg-blue-500 p-4 rounded-full shadow-md"
-      >
-        <Text className="text-white text-center text-lg font-semibold">
-          Confirm Booking
+      <View className="px-4 py-6">
+        <Text className="text-2xl font-bold text-gray-800 mb-4">
+          {restaurant["restaurant_name"]}
         </Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <Text className="text-lg font-medium text-gray-700 mb-2">
+          Choose group size
+        </Text>
+        <Picker
+          selectedValue={selectedGroupSize}
+          onValueChange={(itemValue, itemIndex) => {
+            setSelectedGroupSize(itemValue);
+          }}
+          style={{
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: "#ddd",
+            marginBottom: 16,
+          }}
+        >
+          {maxGroupSize(biggestTable)}
+        </Picker>
+
+        <Text className="text-lg font-medium text-gray-700 mb-4">
+          Select booking time
+        </Text>
+        <View className="mb-6">
+          <DateTimePicker
+            value={date}
+            mode="datetime"
+            is24Hour={true}
+            minuteInterval={5}
+            display="default"
+            onChange={getDate}
+            style={{ width: "100%", marginBottom: 16 }}
+          />
+        </View>
+        <Text className="text-lg font-medium text-gray-700 mb-4">
+          Additional info (optional)
+        </Text>
+        <TextInput
+          placeholder="Any additional info"
+          onChangeText={(newText) => setAdditionalInfo(newText)}
+          value={additionalInfo}
+          className="h-16 border border-gray-300 rounded-lg px-4 py-2 text-lg mb-6"
+        />
+
+        <TouchableOpacity
+          onPress={createBooking}
+          className="mt-6 w-[200px] mx-auto bg-blue-500 p-4 rounded-full shadow-md"
+        >
+          <Text className="text-white text-center text-lg font-semibold">
+            Confirm Booking
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 

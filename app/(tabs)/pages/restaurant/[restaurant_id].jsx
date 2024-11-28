@@ -11,6 +11,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/supabase";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { Modal } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const restaurantProfile = () => {
   const router = useRouter();
@@ -57,7 +58,15 @@ const restaurantProfile = () => {
     setSelectedImage(null);
   }
   return (
-    <View className="flex-1 p-4">
+    <SafeAreaView className="flex-1 p-4">
+      <View className="flex-row items-center">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="p-2 bg-blue-500 rounded-lg shadow-md"
+        >
+          <Text className="text-white text-lg font-semibold">{"< Back"}</Text>
+        </TouchableOpacity>
+      </View>
       <Text className="text-2xl font-semibold text-gray-800 mb-2">
         {restaurant["restaurant_name"]}
       </Text>
@@ -110,7 +119,7 @@ const restaurantProfile = () => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 

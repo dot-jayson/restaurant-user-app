@@ -252,137 +252,135 @@ const Home = () => {
   }
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView className="flex-1">
-        <View className="flex-1 bg-white">
-          {/* Map */}
-          <MapView initialRegion={tempInitialLocation} style={styles.map}>
-            <Marker coordinate={tempInitialLocation} title="You are here">
-              <Image
-                style={styles.locationMarker}
-                source={require("../../assets/location-marker.png")}
-              />
-            </Marker>
-
-            {cuisineFilteredRestaurants.map((restaurant) => (
-              <Marker
-                key={restaurant.restaurant_id}
-                coordinate={{
-                  latitude: restaurant.latitude,
-                  longitude: restaurant.longitude,
-                }}
-                title={restaurant.restaurant_name}
-                onPress={() => {
-                  router.push(`/pages/restaurant/${restaurant.restaurant_id}`);
-                }}
-              />
-            ))}
-          </MapView>
-
-          {/* Open Filters Button */}
-          <TouchableOpacity
-            className="absolute top-2.5 left-2.5 z-10 bg-blue-500 p-2.5 rounded-md"
-            onPress={togglePanel}
-          >
-            <Text className="text-white font-bold">
-              {isPanelVisible ? "Hide Filters" : "Show Filters"}
-            </Text>
-          </TouchableOpacity>
-
-          {/* Sign Out Button */}
-          <TouchableOpacity
-            className="absolute top-2.5 right-2.5 z-10 bg-red-500 p-2.5 rounded-md"
-            onPress={signOut}
-          >
-            <Text className="text-white font-bold">Sign Out</Text>
-          </TouchableOpacity>
-
-          {/* Sliding Panel */}
-          <Animated.View
-            style={[
-              styles.slidingPanel,
-              { width: panelWidth, opacity: panelOpacity },
-            ]}
-          >
-            <View className="flex-1">
-              <TouchableOpacity
-                className="bg-blue-500 p-2.5 rounded-md"
-                onPress={togglePanel}
-              >
-                <Text className="text-white font-bold">
-                  {isPanelVisible ? "Hide Filters" : "Show Filters"}
-                </Text>
-              </TouchableOpacity>
-
-              <Text className="text-lg font-bold mb-2.5">Filter Options</Text>
-
-              {/* Availability Dropdown */}
-              <DropDownPicker
-                open={openAvailabilityDropdown}
-                value={availabilityDropDownValue}
-                items={[
-                  { label: "All", value: "all" },
-                  { label: "Available in 15", value: "15 minutes" },
-                  { label: "Available in 1 hour", value: "1 hour" },
-                ]}
-                setOpen={setOpenAvailabilityDropdown}
-                setValue={setAvailabilityDropDownValue}
-                placeholder="Select Availability"
-                style={styles.dropdown}
-                dropDownStyle={styles.dropdownList}
-                zIndex={3}
-              />
-
-              {/* Party Size Dropdown */}
-              {availabilityDropDownValue !== "all" && (
-                <DropDownPicker
-                  open={openPartySizeDropdown}
-                  value={partySize}
-                  items={Array.from({ length: 8 }, (_, index) => ({
-                    label: `${index + 1}`,
-                    value: index + 1,
-                  }))}
-                  setOpen={setOpenPartySizeDropdown}
-                  setValue={setPartySize}
-                  placeholder="Select Party Size"
-                  style={styles.dropdown}
-                  dropDownStyle={styles.dropdownList}
-                  zIndex={2}
-                />
-              )}
-
-              {/* Cuisine Dropdown */}
-              <DropDownPicker
-                open={openCuisineDropdown}
-                value={selectedCuisine}
-                items={cuisines}
-                setOpen={setOpenCuisineDropdown}
-                setValue={setSelectedCuisine}
-                placeholder="Select Cuisine"
-                style={styles.dropdown}
-                dropDownStyle={styles.dropdownList}
-                zIndex={1}
-              />
-            </View>
-          </Animated.View>
-
-          {/* Restaurant List Heading and List */}
-          <Text className="text-2xl font-bold mt-5 mb-2.5 text-center">
-            Restaurant List
-          </Text>
-          {cuisineFilteredRestaurants.length === 0 ? (
-            <Text>No available restaurants near you</Text>
-          ) : (
-            <FlatList
-              data={cuisineFilteredRestaurants}
-              renderItem={renderRestaurantItem}
-              keyExtractor={(item) => item.restaurant_id}
-              contentContainerStyle={styles.restaurantListContainer}
+    <SafeAreaView className="flex-1">
+      <View className="flex-1 bg-white">
+        {/* Map */}
+        <MapView initialRegion={tempInitialLocation} style={styles.map}>
+          <Marker coordinate={tempInitialLocation} title="You are here">
+            <Image
+              style={styles.locationMarker}
+              source={require("../../assets/location-marker.png")}
             />
-          )}
-        </View>
-      </SafeAreaView>
-    </SafeAreaProvider>
+          </Marker>
+
+          {cuisineFilteredRestaurants.map((restaurant) => (
+            <Marker
+              key={restaurant.restaurant_id}
+              coordinate={{
+                latitude: restaurant.latitude,
+                longitude: restaurant.longitude,
+              }}
+              title={restaurant.restaurant_name}
+              onPress={() => {
+                router.push(`/pages/restaurant/${restaurant.restaurant_id}`);
+              }}
+            />
+          ))}
+        </MapView>
+
+        {/* Open Filters Button */}
+        <TouchableOpacity
+          className="absolute top-2.5 left-2.5 z-10 bg-blue-500 p-2.5 rounded-md"
+          onPress={togglePanel}
+        >
+          <Text className="text-white font-bold">
+            {isPanelVisible ? "Hide Filters" : "Show Filters"}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Sign Out Button */}
+        <TouchableOpacity
+          className="absolute top-2.5 right-2.5 z-10 bg-red-500 p-2.5 rounded-md"
+          onPress={signOut}
+        >
+          <Text className="text-white font-bold">Sign Out</Text>
+        </TouchableOpacity>
+
+        {/* Sliding Panel */}
+        <Animated.View
+          style={[
+            styles.slidingPanel,
+            { width: panelWidth, opacity: panelOpacity },
+          ]}
+        >
+          <View className="flex-1">
+            <TouchableOpacity
+              className="bg-blue-500 p-2.5 rounded-md"
+              onPress={togglePanel}
+            >
+              <Text className="text-white font-bold">
+                {isPanelVisible ? "Hide Filters" : "Show Filters"}
+              </Text>
+            </TouchableOpacity>
+
+            <Text className="text-lg font-bold mb-2.5">Filter Options</Text>
+
+            {/* Availability Dropdown */}
+            <DropDownPicker
+              open={openAvailabilityDropdown}
+              value={availabilityDropDownValue}
+              items={[
+                { label: "All", value: "all" },
+                { label: "Available in 15", value: "15 minutes" },
+                { label: "Available in 1 hour", value: "1 hour" },
+              ]}
+              setOpen={setOpenAvailabilityDropdown}
+              setValue={setAvailabilityDropDownValue}
+              placeholder="Select Availability"
+              style={styles.dropdown}
+              dropDownStyle={styles.dropdownList}
+              zIndex={3}
+            />
+
+            {/* Party Size Dropdown */}
+            {availabilityDropDownValue !== "all" && (
+              <DropDownPicker
+                open={openPartySizeDropdown}
+                value={partySize}
+                items={Array.from({ length: 8 }, (_, index) => ({
+                  label: `${index + 1}`,
+                  value: index + 1,
+                }))}
+                setOpen={setOpenPartySizeDropdown}
+                setValue={setPartySize}
+                placeholder="Select Party Size"
+                style={styles.dropdown}
+                dropDownStyle={styles.dropdownList}
+                zIndex={2}
+              />
+            )}
+
+            {/* Cuisine Dropdown */}
+            <DropDownPicker
+              open={openCuisineDropdown}
+              value={selectedCuisine}
+              items={cuisines}
+              setOpen={setOpenCuisineDropdown}
+              setValue={setSelectedCuisine}
+              placeholder="Select Cuisine"
+              style={styles.dropdown}
+              dropDownStyle={styles.dropdownList}
+              zIndex={1}
+            />
+          </View>
+        </Animated.View>
+
+        {/* Restaurant List Heading and List */}
+        <Text className="text-2xl font-bold mt-5 mb-2.5 text-center">
+          Restaurant List
+        </Text>
+        {cuisineFilteredRestaurants.length === 0 ? (
+          <Text>No available restaurants near you</Text>
+        ) : (
+          <FlatList
+            data={cuisineFilteredRestaurants}
+            renderItem={renderRestaurantItem}
+            keyExtractor={(item) => item.restaurant_id}
+            contentContainerStyle={styles.restaurantListContainer}
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 
