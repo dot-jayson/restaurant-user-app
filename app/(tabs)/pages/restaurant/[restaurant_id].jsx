@@ -62,9 +62,9 @@ const restaurantProfile = () => {
       <View className="flex-row items-center">
         <TouchableOpacity
           onPress={() => router.back()}
-          className="p-2 bg-blue-500 rounded-lg shadow-md"
+          className="p-2 bg-[#3772FF] rounded-lg"
         >
-          <Text className="text-white text-lg font-semibold">{"< Back"}</Text>
+          <Text className="text-white text-lg font-semibold">Back</Text>
         </TouchableOpacity>
       </View>
       <Text className="text-2xl font-semibold text-gray-800 mb-2">
@@ -98,7 +98,7 @@ const restaurantProfile = () => {
         onPress={() => {
           router.push(`/pages/restaurant/${restaurant_id}/booking_page`);
         }}
-        className="mt-4 w-[200px] mx-auto bg-blue-500 p-4 rounded-full shadow-md "
+        className="mt-4 w-[200px] mx-auto bg-[#3772FF] p-4 rounded-full shadow-md "
       >
         <Text className="text-white text-center font-semibold">Book Table</Text>
       </Pressable>

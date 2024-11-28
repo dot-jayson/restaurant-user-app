@@ -5,6 +5,7 @@ import "react-native-url-polyfill/auto";
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import Auth from "./components/Auth";
+import LogoSVG from "./components/LogoSVG";
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -29,7 +30,10 @@ export default function App() {
 
   return (
     <View className="flex-1 bg-[#fff] justify-center gap-3">
-      <Text className="text-2xl mx-auto">Restaurant App</Text>
+      <View className="items-center">
+        <LogoSVG />
+      </View>
+
       <StatusBar style="auto" />
       {!session && <Auth />}
     </View>

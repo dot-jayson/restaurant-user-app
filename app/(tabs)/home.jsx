@@ -280,7 +280,7 @@ const Home = () => {
 
         {/* Open Filters Button */}
         <TouchableOpacity
-          className="absolute top-2.5 left-2.5 z-10 bg-blue-500 p-2.5 rounded-md"
+          className="absolute top-2.5 left-2.5 z-10 bg-[#3772FF] p-2.5 rounded-md"
           onPress={togglePanel}
         >
           <Text className="text-white font-bold">
@@ -305,7 +305,7 @@ const Home = () => {
         >
           <View className="flex-1">
             <TouchableOpacity
-              className="bg-blue-500 p-2.5 rounded-md"
+              className="bg-[#3772FF] p-2.5 rounded-md"
               onPress={togglePanel}
             >
               <Text className="text-white font-bold">

@@ -143,9 +143,9 @@ const bookingPage = () => {
       <View className="flex-row items-center">
         <TouchableOpacity
           onPress={() => router.back()}
-          className="p-2 bg-blue-500 rounded-lg shadow-md"
+          className="p-2 bg-[#3772FF] rounded-lg"
         >
-          <Text className="text-white text-lg font-semibold">{"< Back"}</Text>
+          <Text className="text-white text-lg font-semibold">Back</Text>
         </TouchableOpacity>
       </View>
       <View className="px-4 py-6">
@@ -198,7 +198,7 @@ const bookingPage = () => {
 
         <TouchableOpacity
           onPress={createBooking}
-          className="mt-6 w-[200px] mx-auto bg-blue-500 p-4 rounded-full shadow-md"
+          className="mt-6 w-[200px] mx-auto bg-[#3772FF] p-4 rounded-full shadow-md"
         >
           <Text className="text-white text-center text-lg font-semibold">
             Confirm Booking
