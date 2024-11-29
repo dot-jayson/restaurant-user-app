@@ -370,7 +370,7 @@ const Home = () => {
           Restaurant List
         </Text>
         {cuisineFilteredRestaurants.length === 0 ? (
-          <Text>No available restaurants near you</Text>
+          <Text class="items-center">No available restaurants near you</Text>
         ) : (
           <FlatList
             data={cuisineFilteredRestaurants}
